@@ -4,10 +4,10 @@ import "./GitProfile.css";
 const GitProfile = () => {
   const [username, setUsername] = useState("");
   const [profile, setProfile] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const fetchProfile = async () => {
+  const fetchUser = async () => {
     if (!username.trim()) {
       setError("Please enter a GitHub username.");
       setProfile(null);
@@ -19,15 +19,15 @@ const GitProfile = () => {
     setProfile(null);
 
     try {
-      const response = await fetch(`https://api.github.com/users/${username}`);
-      if (!response.ok) {
-        if (response.status === 404) {
+      const res = await fetch(`https://api.github.com/users/${username}`);
+      if (!res.ok) {
+        if (res.status === 404) {
           throw new Error("User not found.");
         } else {
-          throw new Error("Something went wrong. Try again later.");
+          throw new Error("Failed to fetch user. Try again later.");
         }
       }
-      const data = await response.json();
+      const data = await res.json();
       setProfile(data);
     } catch (err) {
       setError(err.message);
@@ -39,32 +39,38 @@ const GitProfile = () => {
   return (
     <div className="git-container">
       <h2>GitHub Profile Finder</h2>
-      <div className="search-box">
+      <div className="search-bar">
         <input
           type="text"
-          value={username}
           placeholder="Enter GitHub username"
+          value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <button onClick={fetchProfile}>Search</button>
+        <button onClick={fetchUser}>Search</button>
       </div>
 
-      {loading && <p className="info-text">Loading...</p>}
-      {error && <p className="error-text">{error}</p>}
+      {loading && <p className="loading">Loading...</p>}
+      {error && <p className="error">{error}</p>}
 
       {profile && (
         <div className="profile-card">
           <img src={profile.avatar_url} alt={profile.login} />
-          <h3>{profile.name || "No Name Available"}</h3>
-          <p>@{profile.login}</p>
-          <p>{profile.bio || "No bio provided."}</p>
+          <h3>{profile.name || profile.login}</h3>
+          <p className="bio">{profile.bio || "No bio provided."}</p>
+          <p className="location">
+            📍 {profile.location || "Location not available"}
+          </p>
           <div className="stats">
             <span>Followers: {profile.followers}</span>
-            <span>Following: {profile.following}</span>
-            <span>Repos: {profile.public_repos}</span>
+            <span>Public Repos: {profile.public_repos}</span>
           </div>
-          <a href={profile.html_url} target="_blank" rel="noreferrer">
-            View Profile
+          <a
+            href={profile.html_url}
+            target="_blank"
+            rel="noreferrer"
+            className="profile-link"
+          >
+            View on GitHub
           </a>
         </div>
       )}
